@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 import java.security.Principal
-import java.util.*
 
 
 @RestController
@@ -26,17 +25,16 @@ class CashCardController(private val cashCardRepository: CashCardRepository) {
     }
 
     @PostMapping
-    fun createCashCard(@RequestBody card: CashCard, ucb: UriComponentsBuilder, principal: Principal): ResponseEntity<Unit> {
+    fun createCashCard(
+        @RequestBody card: CashCard,
+        ucb: UriComponentsBuilder,
+        principal: Principal
+    ): ResponseEntity<Unit> {
         val cashCardWithOwner = CashCard(null, card.amount, principal.name)
         val savedCashCard = cashCardRepository.save(cashCardWithOwner)
         val locationOfNewCashCard = ucb.path("cashcards/{id}").buildAndExpand(savedCashCard.id).toUri()
         return ResponseEntity.created(locationOfNewCashCard).build()
     }
-
-//    @GetMapping
-//    fun findAll(): ResponseEntity<Iterable<CashCard>> {
-//        return ResponseEntity.ok(cashCardRepository.findAll())
-//    }
 
     @GetMapping
     fun findAll(pageable: Pageable, principal: Principal): ResponseEntity<List<CashCard>> {

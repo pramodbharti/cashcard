@@ -150,7 +150,7 @@ class CashcardApplicationTests {
     @Test
     fun shouldNotAllowAccessToCashCardsTheyDoNotOwn() {
         val response = restTemplate
-            ?.withBasicAuth("sarah1","abc123")
+            ?.withBasicAuth("sarah1", "abc123")
             ?.getForEntity("/cashcards/102", String::class.java)
 
         assertThat(response?.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
