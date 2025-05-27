@@ -20,7 +20,7 @@ class SecurityConfig {
             .authorizeHttpRequests { request ->
                 request
                     .requestMatchers("/cashcards/**")
-                    .hasRole("CARD_OWNER")
+                    .hasRole("CARD-OWNER")
             }
             .httpBasic {}
             .csrf { csrfConfigurer -> csrfConfigurer.disable() }
@@ -38,12 +38,12 @@ class SecurityConfig {
         val sarah = users
             .username("sarah1")
             .password(passwordEncoder.encode("abc123"))
-            .roles("CARD_OWNER")
+            .roles("CARD-OWNER")
             .build()
         val hankOwnsNoCards = users
             .username("hank-owns-no-cards")
             .password(passwordEncoder.encode("qrs456"))
-            .roles("NON_OWNER")
+            .roles("NON-OWNER")
             .build()
         return InMemoryUserDetailsManager(sarah, hankOwnsNoCards)
     }

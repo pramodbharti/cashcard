@@ -34,9 +34,19 @@ class CashcardApplicationTests {
     }
 
     @Test
+    fun shouldNotReturnACashCardWithAnUnknownId() {
+        val response = restTemplate
+            ?.withBasicAuth("sarah1", "abc123")
+            ?.getForEntity("/cashcards/1000", String::class.java)
+        assertThat(response?.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(response?.body).isBlank()
+    }
+
+
+    @Test
     @DirtiesContext
     fun shouldCreateANewCashCard() {
-        val cashCard = CashCard(null, 250.0, "sarah1")
+        val cashCard = CashCard(null, 250.0, null)
         val createResponse = restTemplate
             ?.withBasicAuth("sarah1", "abc123")
             ?.postForEntity("/cashcards", cashCard, Void::class.java)
@@ -53,15 +63,6 @@ class CashcardApplicationTests {
         assertThat(id).isNotNull
         val amount: Double = documentContext.read("$.amount")
         assertThat(amount).isEqualTo(250.00)
-    }
-
-    @Test
-    fun shouldNotReturnACashCardWithAnUnknownId() {
-        val response = restTemplate
-            ?.withBasicAuth("sarah1", "abc123")
-            ?.getForEntity("/cashcards/1000", String::class.java)
-        assertThat(response?.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
-        assertThat(response?.body).isBlank()
     }
 
     @Test
@@ -144,6 +145,15 @@ class CashcardApplicationTests {
             ?.withBasicAuth("hank-owns-no-cards", "qrs456")
             ?.getForEntity("/cashcards/99", String::class.java)
         assertThat(response?.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+    }
+
+    @Test
+    fun shouldNotAllowAccessToCashCardsTheyDoNotOwn() {
+        val response = restTemplate
+            ?.withBasicAuth("sarah1","abc123")
+            ?.getForEntity("/cashcards/102", String::class.java)
+
+        assertThat(response?.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
     }
 
     @Test

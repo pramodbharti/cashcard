@@ -7,30 +7,28 @@ import org.springframework.data.domain.Sort
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
+import java.security.Principal
+import java.util.*
+
 
 @RestController
 @RequestMapping("/cashcards")
 class CashCardController(private val cashCardRepository: CashCardRepository) {
 
     @GetMapping("/{requestId}")
-    fun findById(@PathVariable requestId: Long): ResponseEntity<CashCard> {
-        val cashCard = cashCardRepository.findById(requestId)
+    fun findById(@PathVariable requestId: Long, principal: Principal): ResponseEntity<CashCard> {
+        val cashCard = cashCardRepository.findByIdAndOwner(requestId, principal.name)
         return if (cashCard.isPresent) {
             ResponseEntity.ok(cashCard.get())
         } else {
             ResponseEntity.notFound().build()
         }
-//        if (requestId == 99L) {
-//            val cashCard = CashCard(99L, 123.45)
-//            return ResponseEntity.ok(cashCard)
-//        } else {
-//            return ResponseEntity.notFound().build()
-//        }
     }
 
     @PostMapping
-    fun createCashCard(@RequestBody card: CashCard, ucb: UriComponentsBuilder): ResponseEntity<Void>? {
-        val savedCashCard = cashCardRepository.save(card)
+    fun createCashCard(@RequestBody card: CashCard, ucb: UriComponentsBuilder, principal: Principal): ResponseEntity<Unit> {
+        val cashCardWithOwner = CashCard(null, card.amount, principal.name)
+        val savedCashCard = cashCardRepository.save(cashCardWithOwner)
         val locationOfNewCashCard = ucb.path("cashcards/{id}").buildAndExpand(savedCashCard.id).toUri()
         return ResponseEntity.created(locationOfNewCashCard).build()
     }
@@ -41,8 +39,9 @@ class CashCardController(private val cashCardRepository: CashCardRepository) {
 //    }
 
     @GetMapping
-    fun findAll(pageable: Pageable): ResponseEntity<Iterable<CashCard>> {
-        val page: Page<CashCard> = cashCardRepository.findAll(
+    fun findAll(pageable: Pageable, principal: Principal): ResponseEntity<List<CashCard>> {
+        val page: Page<CashCard> = cashCardRepository.findByOwner(
+            principal.name,
             PageRequest.of(
                 pageable.pageNumber,
                 pageable.pageSize,
@@ -51,4 +50,5 @@ class CashCardController(private val cashCardRepository: CashCardRepository) {
         )
         return ResponseEntity.ok(page.content)
     }
+
 }
