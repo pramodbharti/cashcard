@@ -16,7 +16,7 @@ class CashCardController(private val cashCardRepository: CashCardRepository) {
 
     @GetMapping("/{requestId}")
     fun findById(@PathVariable requestId: Long, principal: Principal): ResponseEntity<CashCard> {
-        val cashCard = cashCardRepository.findByIdAndOwner(requestId, principal.name)
+        val cashCard = findCashCard(requestId, principal)
         return if (cashCard.isPresent) {
             ResponseEntity.ok(cashCard.get())
         } else {
@@ -48,5 +48,24 @@ class CashCardController(private val cashCardRepository: CashCardRepository) {
         )
         return ResponseEntity.ok(page.content)
     }
+
+    @PutMapping("/{requestedId}")
+    fun updateCashCard(
+        @PathVariable requestedId: Long,
+        @RequestBody card: CashCard,
+        principal: Principal
+    ): ResponseEntity<Unit> {
+        val cashCard = findCashCard(requestedId, principal)
+        return if (cashCard.isPresent) {
+            val updatedCard = CashCard(cashCard.get().id, card.amount, principal.name)
+            cashCardRepository.save(updatedCard)
+            ResponseEntity.noContent().build()
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
+
+    private fun findCashCard(requestedId: Long, principal: Principal) =
+        cashCardRepository.findByIdAndOwner(requestedId, principal.name)
 
 }
