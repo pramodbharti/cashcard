@@ -45,6 +45,11 @@ class SecurityConfig {
             .password(passwordEncoder.encode("qrs456"))
             .roles("NON-OWNER")
             .build()
-        return InMemoryUserDetailsManager(sarah, hankOwnsNoCards)
+        val kumar = User.builder()
+            .username("kumar2")
+            .password(passwordEncoder.encode("xyz789"))
+            .roles("CARD-OWNER")
+            .build()
+        return InMemoryUserDetailsManager(sarah, hankOwnsNoCards, kumar)
     }
 }

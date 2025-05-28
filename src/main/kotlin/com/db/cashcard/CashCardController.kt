@@ -24,6 +24,17 @@ class CashCardController(private val cashCardRepository: CashCardRepository) {
         }
     }
 
+    @DeleteMapping("/{requestedId}")
+    fun deleteCashCard(@PathVariable requestedId: Long, principal: Principal): ResponseEntity<Unit> {
+        return if (cashCardRepository.existsByIdAndOwner(requestedId, principal.name)) {
+            cashCardRepository.deleteById(requestedId)
+            ResponseEntity.noContent().build()
+        } else {
+            ResponseEntity.notFound().build()
+        }
+
+    }
+
     @PostMapping
     fun createCashCard(
         @RequestBody card: CashCard,
