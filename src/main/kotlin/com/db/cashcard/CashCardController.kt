@@ -12,7 +12,7 @@ import java.security.Principal
 
 @RestController
 @RequestMapping("/cashcards")
-class CashCardController(private val cashCardRepository: CashCardRepository) {
+class CashCardController(private val cashCardService: CashCardService) {
 
     @GetMapping("/{requestId}")
     fun findById(@PathVariable requestId: Long, principal: Principal): ResponseEntity<CashCard> {
@@ -26,8 +26,8 @@ class CashCardController(private val cashCardRepository: CashCardRepository) {
 
     @DeleteMapping("/{requestedId}")
     fun deleteCashCard(@PathVariable requestedId: Long, principal: Principal): ResponseEntity<Unit> {
-        return if (cashCardRepository.existsByIdAndOwner(requestedId, principal.name)) {
-            cashCardRepository.deleteById(requestedId)
+        return if (cashCardService.existsByIdAndOwner(requestedId, principal.name)) {
+            cashCardService.deleteById(requestedId)
             ResponseEntity.noContent().build()
         } else {
             ResponseEntity.notFound().build()
@@ -42,14 +42,14 @@ class CashCardController(private val cashCardRepository: CashCardRepository) {
         principal: Principal
     ): ResponseEntity<Unit> {
         val cashCardWithOwner = CashCard(null, card.amount, principal.name)
-        val savedCashCard = cashCardRepository.save(cashCardWithOwner)
+        val savedCashCard = cashCardService.save(cashCardWithOwner)
         val locationOfNewCashCard = ucb.path("cashcards/{id}").buildAndExpand(savedCashCard.id).toUri()
         return ResponseEntity.created(locationOfNewCashCard).build()
     }
 
     @GetMapping
     fun findAll(pageable: Pageable, principal: Principal): ResponseEntity<List<CashCard>> {
-        val page: Page<CashCard> = cashCardRepository.findByOwner(
+        val page: Page<CashCard> = cashCardService.findByOwner(
             principal.name,
             PageRequest.of(
                 pageable.pageNumber,
@@ -69,7 +69,7 @@ class CashCardController(private val cashCardRepository: CashCardRepository) {
         val cashCard = findCashCard(requestedId, principal)
         return if (cashCard.isPresent) {
             val updatedCard = CashCard(cashCard.get().id, card.amount, principal.name)
-            cashCardRepository.save(updatedCard)
+            cashCardService.save(updatedCard)
             ResponseEntity.noContent().build()
         } else {
             ResponseEntity.notFound().build()
@@ -77,6 +77,6 @@ class CashCardController(private val cashCardRepository: CashCardRepository) {
     }
 
     private fun findCashCard(requestedId: Long, principal: Principal) =
-        cashCardRepository.findByIdAndOwner(requestedId, principal.name)
+        cashCardService.findByIdAndOwner(requestedId, principal.name)
 
 }
